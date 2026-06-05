@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
-  res.send('CI/CD testing successfully done and webhooks are firing correctly for every push.');
+  res.send('everyting is running fine');
 });
 
 app.listen(3000, () => {
