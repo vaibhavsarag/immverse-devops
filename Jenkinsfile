@@ -3,14 +3,14 @@ pipeline {
 
     environment {
         IMAGE_NAME = "vaibhavsarag/sample-app"
-	Image_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-		git branch: "main",
+                git branch: "main",
                 url: 'https://github.com/vaibhavsarag/immverse-devops.git'
             }
         }
@@ -36,28 +36,42 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
 
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
 
-                    sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
+                    docker push $IMAGE_NAME:$IMAGE_TAG
+                    '''
                 }
             }
         }
-	stage('Update Kubernetes Deployment') { 
-		steps {
-			 sh ''' sed -i "s|image:.*|image: vaibhavsarag/sample-app:$IMAGE_TAG|g" deployment.yaml '''
-			 sh 'cat deployment.yaml' } }
+
+        stage('Update Kubernetes Deployment') {
+            steps {
+
+                sh '''
+                sed -i "s|image:.*|image: vaibhavsarag/sample-app:$IMAGE_TAG|g" deployment.yaml
+                '''
+
+                sh 'cat deployment.yaml'
+            }
+        }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply --validate=false -f deployment.yaml'
+                sh 'kubectl apply -f deployment.yaml'
                 sh 'kubectl apply -f service.yaml'
             }
         }
     }
+
+    post {
+
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
 }
-	post { success { 
-		echo 'Pipeline executed successfully!'
-	}
-		failure { echo 'Pipeline failed!' }
-	}
- }
