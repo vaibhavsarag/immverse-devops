@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "vaibhavsarag/sample-app"
+	Image_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -16,7 +17,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:latest .'
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
             }
         }
 
@@ -37,10 +38,14 @@ pipeline {
 
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
 
-                    sh 'docker push $IMAGE_NAME:latest'
+                    sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
                 }
             }
         }
+	stage('Update Kubernetes Deployment') { 
+		steps {
+			 sh ''' sed -i "s|image:.*|image: vaibhavsarag/sample-app:$IMAGE_TAG|g" deployment.yaml '''
+			 sh 'cat deployment.yaml' } }
 
         stage('Deploy to Kubernetes') {
             steps {
@@ -50,3 +55,9 @@ pipeline {
         }
     }
 }
+	post { success { 
+		echo 'Pipeline executed successfully!'
+	}
+		failure { echo 'Pipeline failed!' }
+	}
+ }
