@@ -1,10 +1,50 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "YOUR_DOCKER_USERNAME/sample-app"
+    }
+
     stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/YOUR_USERNAME/immverse-devops.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:latest .'
+            }
+        }
+
         stage('Test') {
             steps {
-                echo 'Pipeline working'
+                sh 'echo Testing Application'
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+
+                    sh 'docker push $IMAGE_NAME:latest'
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
             }
         }
     }
