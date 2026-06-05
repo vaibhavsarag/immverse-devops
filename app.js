@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
-  res.send('CI/CD final version');
+  res.send('CI/CD testing successful');
 });
 
 app.listen(3000, () => {
