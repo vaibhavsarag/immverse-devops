@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "YOUR_DOCKER_USERNAME/sample-app"
+        IMAGE_NAME = "vaibhavsarag/sample-app"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/YOUR_USERNAME/immverse-devops.git'
+                git 'https://github.com/vaibhavsarag/immverse-devops.git'
             }
         }
 
